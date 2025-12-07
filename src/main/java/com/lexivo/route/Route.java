@@ -2,6 +2,7 @@ package com.lexivo.route;
 
 import com.lexivo.controllers.Controller;
 import com.lexivo.filters.RateLimiter;
+import com.lexivo.schema.Log;
 import com.sun.net.httpserver.Filter;
 import com.sun.net.httpserver.HttpServer;
 
@@ -28,8 +29,7 @@ public class Route {
 			context2.getFilters().add(new RateLimiter());
 		}
 		catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
-			// TODO: Replace with a proper logger
-			System.err.println(e.getMessage());
+			Log.exception(List.of("Exception in route.Route", e.getClass().getName(), e.getMessage()));
 		}
 	}
 

@@ -1,17 +1,19 @@
 package com.lexivo.util;
 
+import com.lexivo.schema.Log;
 import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeBodyPart;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
 
+import java.util.List;
 import java.util.Properties;
 
 public abstract class Email {
 	private final static String SENDER_EMAIL = System.getenv("SENDER_EMAIL");
 	private final static String EMAIL_PASSWORD = System.getenv("EMAIL_PASSWORD");
-	public static boolean sendTo(String recipientEmail, String subject, String htmlBody) {
+	public static void sendTo(String recipientEmail, String subject, String htmlBody) {
 //		TODO: Edit when sender email changed
 		Properties props = new Properties();
 		props.put("mail.smtp.auth", "true");
@@ -38,26 +40,41 @@ public abstract class Email {
 			msg.setContent(mp);
 
 			Transport.send(msg);
-			return true;
 		} catch (Exception e) {
-//			TODO: Proper logging
-			System.err.println(e.getMessage());
-			return false;
+			Log.exception(List.of("Exception while sending an email", e.getMessage(), "Subject: " + subject, "Recipient email: " + recipientEmail));
 		}
 	}
 
 	public static void sendConfirmationCode(String recipientEmail, String confirmationCode) {
-		String htmlBody = """
-		<div style="padding: 50px;">
-			<p style="text-align: center; font-size: 20px; font-weight: bold;">Confirmation code</p>
-			<div style="padding: 10px; background-color: #f9f9f9;">
-				<p style="text-align: center; font-size: 20px; font-weight: bold; letter-spacing: 3px;">%</p>
+		String htmlBody =
+		"""
+			<div style="padding: 50px;">
+				<p style="text-align: center; font-size: 20px; font-weight: bold;">Confirmation code</p>
+				<div style="padding: 10px; background-color: #f9f9f9;">
+					<p style="text-align: center; font-size: 20px; font-weight: bold; letter-spacing: 3px;">%</p>
+				</div>
 			</div>
-		</div>
 		""";
 
 		htmlBody = htmlBody.replace("%", confirmationCode);
 
 		sendTo(recipientEmail, "Email confirmation", htmlBody);
+	}
+
+	public static void sendEmailToAdmin(String subject, String message) {
+		String adminEmail = System.getenv("ADMIN_EMAIL");
+
+		String htmlBody =
+		"""
+			<div style="padding: 50px;">
+				<div style="padding: 10px; background-color: #f9f9f9;">
+					<p style="color: #9d3232; font-size: 18px; font-weight: semibold;">%</p>
+				</div>
+			</div>
+		""";
+
+		htmlBody = htmlBody.replace("%", message);
+
+		sendTo(adminEmail, subject, htmlBody);
 	}
 }

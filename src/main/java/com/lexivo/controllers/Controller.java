@@ -1,5 +1,6 @@
 package com.lexivo.controllers;
 
+import com.lexivo.schema.Log;
 import com.lexivo.util.HttpResponseStatus;
 import com.lexivo.util.JsonUtil;
 import com.sun.net.httpserver.HttpExchange;
@@ -9,6 +10,7 @@ import com.lexivo.util.HttpRequestMethod;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Map;
 
 public abstract class Controller implements HttpHandler {
@@ -29,8 +31,12 @@ public abstract class Controller implements HttpHandler {
 				case null, default -> sendNotFoundResponse(exchange);
 			}
 		} catch (Exception ioe) {
-			// TODO: Replace with a proper logger
-			System.err.println(ioe.getMessage());
+			Log.exception(List.of(
+					"Server side IOException in controllers.Controller.handle",
+					"Request method: " + exchange.getRequestMethod(),
+					"URI.path: " + exchange.getRequestURI().getPath(),
+					"URI.query: " + exchange.getRequestURI().getQuery(),
+					ioe.getMessage()));
 			sendServerSideErrorResponse(exchange);
 		}
 	}
@@ -73,9 +79,8 @@ public abstract class Controller implements HttpHandler {
 		try {
 			sendResponseWithMessage(exchange, HttpResponseStatus.SERVER_SIDE_ERROR, "Server side error");
 		}
-		catch (IOException e) {
-			// TODO: Proper logger
-			System.err.println(e.getMessage());
+		catch (IOException ioe) {
+			Log.exception(List.of("Server side IOException in controllers.Controller.sendServerSideErrorResponse", ioe.getMessage()));
 		}
 	}
 

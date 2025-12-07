@@ -1,6 +1,7 @@
 package com.lexivo.util;
 
 import com.lexivo.controllers.Controller;
+import com.lexivo.schema.Log;
 import com.sun.net.httpserver.HttpExchange;
 
 import java.io.IOException;
@@ -43,8 +44,7 @@ public abstract class RequestDataCheck {
 			return JsonUtil.fromJson(reqBodyString, clazz);
 		}
 		catch (IOException ioe) {
-			// TODO: proper logger
-			System.out.println(ioe.getMessage());
+			Log.exception(List.of("Server side exception in util.getCheckedRequestBody", ioe.getMessage()));
 			Controller.sendServerSideErrorResponse(exchange);
 			return null;
 		}

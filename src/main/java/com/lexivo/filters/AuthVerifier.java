@@ -3,6 +3,7 @@ package com.lexivo.filters;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.lexivo.controllers.Controller;
 import com.lexivo.enums.UserRole;
+import com.lexivo.schema.Log;
 import com.lexivo.util.HttpResponseStatus;
 import com.lexivo.util.JwtUtil;
 import com.sun.net.httpserver.Filter;
@@ -50,8 +51,7 @@ public class AuthVerifier extends Filter {
 			Controller.sendJsonResponse(exchange, responseCode, "");
 		}
 		catch (IOException ioe) {
-			// TODO: Replace with a proper logger
-			System.err.println(ioe.getMessage());
+			Log.exception(List.of("Server side IOException in filters.AuthVerifier.denyAccessResponse", ioe.getMessage()));
 		}
 	}
 }

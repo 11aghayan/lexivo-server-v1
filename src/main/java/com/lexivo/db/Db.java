@@ -7,6 +7,7 @@ import java.sql.SQLException;
 public abstract class Db {
 	private static final TableUsers users = new TableUsers();
 	private static final TableEmailConfirmationCodes emailConfirmationCodes = new TableEmailConfirmationCodes();
+	private static final TableLogs logs = new TableLogs();
 	public static Connection getDbConnection() throws SQLException {
 		final String url = System.getenv("DB_URL");
 		final String user = System.getenv("DB_USER");
@@ -40,5 +41,9 @@ public abstract class Db {
 
 	public static TableEmailConfirmationCodes emailConfirmationCodes() {
 		return emailConfirmationCodes;
+	}
+
+	public static TableLogs logs() {
+		return logs;
 	}
 }

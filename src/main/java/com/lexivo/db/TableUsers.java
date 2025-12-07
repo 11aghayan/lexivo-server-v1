@@ -1,11 +1,13 @@
 package com.lexivo.db;
 
+import com.lexivo.schema.Log;
 import com.lexivo.schema.User;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 public class TableUsers {
 	private static final String COL_NAME = "name";
@@ -13,7 +15,7 @@ public class TableUsers {
 	private static final String COL_PASS_HASH = "password_hash";
 	private static final String COL_CONFIRMED = "confirmed";
 
-	public User getByEmail(String email) throws SQLException {
+	public User getByEmail(String email) {
 		try (Connection connection = Db.getDbConnection(); PreparedStatement statement = connection.prepareStatement("SELECT * FROM users WHERE email = ?")) {
 			statement.setString(1, email);
 
@@ -26,6 +28,10 @@ public class TableUsers {
 				boolean confirmed = resultSet.getBoolean(COL_CONFIRMED);
 				return new User(name, eml, pass_hash, confirmed);
 			}
+		}
+		catch (SQLException sqle) {
+			Log.exception(email, List.of("SQL Exception in TableUsers.getByEmail", sqle.getMessage()));
+			return null;
 		}
 	}
 
@@ -40,8 +46,7 @@ public class TableUsers {
 					success[0] = statement.executeUpdate() > 0;
 				}
 				catch (SQLException sqle) {
-					// TODO: Handle
-					System.err.println(sqle.getMessage());
+					Log.exception(user.getEmail(), List.of("SQL Exception in TableUsers.addUser", sqle.getMessage()));
 				}
 			}));
 		return success[0];
@@ -55,8 +60,7 @@ public class TableUsers {
 				success[0] = statement.executeUpdate() > 0;
 			}
 			catch (SQLException sqle) {
-				// TODO: Handle
-				System.err.println(sqle.getMessage());
+				Log.exception(email, List.of("SQL Exception in TableUsers.deleteUser", sqle.getMessage()));
 			}
 		}));
 		return success[0];

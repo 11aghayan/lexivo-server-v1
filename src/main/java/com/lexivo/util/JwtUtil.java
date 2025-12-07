@@ -19,7 +19,7 @@ public abstract class JwtUtil {
 		return JWT.create()
 				.withClaim(CLAIM_EMAIL, email)
 				.withClaim(CLAIM_ROLE, role.toString())
-				.withExpiresAt(Instant.now().plusSeconds(TimeUtil.getSecondsInMinutes(validMinutes)))
+				.withExpiresAt(Instant.now().plusSeconds(DateAndTime.getSecondsInMinutes(validMinutes)))
 				.sign(Algorithm.HMAC256(System.getenv(KEY_JWT_SECRET)));
 	}
 
@@ -28,7 +28,7 @@ public abstract class JwtUtil {
 	}
 
 	public static String createRefreshToken(String email) {
-		return JwtUtil.createHMAC256Token(email, UserRole.USER, TimeUtil.getMinutesInDays(7));
+		return JwtUtil.createHMAC256Token(email, UserRole.USER, DateAndTime.getMinutesInDays(7));
 	}
 
 	public static DecodedJWT verifyJwtToken(String jwtToken) {
@@ -39,9 +39,7 @@ public abstract class JwtUtil {
 					.build();
 			return verifier.verify(jwtToken);
 		}
-		catch (JWTVerificationException e) {
-			// TODO: Replace with a proper logger
-			System.out.println("Not verified token: " + jwtToken);
+		catch (JWTVerificationException ignored) {
 			return null;
 		}
 	}

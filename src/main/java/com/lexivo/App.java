@@ -3,10 +3,12 @@ package com.lexivo;
 import com.lexivo.controllers.AuthController;
 import com.lexivo.controllers.NotFoundController;
 import com.lexivo.route.Route;
+import com.lexivo.schema.Log;
 import com.sun.net.httpserver.HttpServer;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Arrays;
+import java.util.List;
 
 public class App {
     public static final String BASE_URL = "/api/v1";
@@ -24,12 +26,10 @@ public class App {
 
             server.start();
 
-            // TODO: Replace with a proper logger
-            System.out.println("Server running on port " + PORT);
+            Log.info(List.of("Server running on port " + PORT));
         }
-        catch (IOException e) {
-//			TODO: Replace with a proper logger
-            System.err.println(e.getMessage());
+        catch (Exception e) {
+            Log.exception(List.of("Exception in App", Arrays.stream(e.getStackTrace()).toList().toString(), e.getMessage()));
         }
 	}
 

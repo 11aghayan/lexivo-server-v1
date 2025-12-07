@@ -1,11 +1,13 @@
 package com.lexivo.db;
 
 import com.lexivo.schema.EmailConfirmationCodeData;
+import com.lexivo.schema.Log;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 public class TableEmailConfirmationCodes {
 	private static final String COL_EMAIL = "email";
@@ -13,7 +15,7 @@ public class TableEmailConfirmationCodes {
 	private static final String COL_CREATED_AT = "created_at";
 	private static final String COL_EXPIRES_AT = "expires_at";
 
-	public EmailConfirmationCodeData getByEmail(String email) throws SQLException {
+	public EmailConfirmationCodeData getByEmail(String email) {
 		try (Connection connection = Db.getDbConnection(); PreparedStatement statement = connection.prepareStatement("SELECT * FROM email_confirmation_codes WHERE email = ?")) {
 			statement.setString(1, email);
 
@@ -27,38 +29,48 @@ public class TableEmailConfirmationCodes {
 
 				return new EmailConfirmationCodeData(eml, code, createdAt, expiresAt);
 			}
+		} catch (SQLException sqle) {
+			Log.exception(email, List.of("SQL Exception in TableEmailConfirmationCodes.getByEmail", sqle.getMessage()));
+			return null;
 		}
 	}
 
-	public boolean addConfirmationCode(EmailConfirmationCodeData confirmationCodeData) throws SQLException {
+	public boolean addConfirmationCode(EmailConfirmationCodeData confirmationCodeData) {
 		final boolean[] success = {false};
-		Db.executeTransaction((connection -> {
-			try(PreparedStatement statement = connection.prepareStatement("""
+		String sql =
+				"""
 					INSERT INTO email_confirmation_codes (email, code, created_at, expires_at)
 					VALUES(?,?,?,?)
 					ON CONFLICT(email) DO UPDATE SET
 					   code = EXCLUDED.code,
 					   created_at = EXCLUDED.created_at,
 					   expires_at = EXCLUDED.expires_at;
-				""")) {
+				""";
+		try {
+			Db.executeTransaction((connection -> {
+				try(PreparedStatement statement = connection.prepareStatement(sql)) {
 
-				statement.setString(1, confirmationCodeData.getEmail());
-				statement.setString(2, confirmationCodeData.getCode());
-				statement.setLong(3, confirmationCodeData.getCreatedAt());
-				statement.setLong(4, confirmationCodeData.getExpiresAt());
-				success[0] = statement.executeUpdate() > 0;
-			}
-			catch (SQLException sqle) {
-				// TODO: Handle
-				System.err.println(sqle.getMessage());
-			}
-		}));
-		return success[0];
+					statement.setString(1, confirmationCodeData.getEmail());
+					statement.setString(2, confirmationCodeData.getCode());
+					statement.setLong(3, confirmationCodeData.getCreatedAt());
+					statement.setLong(4, confirmationCodeData.getExpiresAt());
+					success[0] = statement.executeUpdate() > 0;
+				}
+			}));
+			return success[0];
+		}
+		catch (SQLException sqle) {
+			Log.exception(confirmationCodeData.getEmail(), List.of("SQL Exception in TableEmailConfirmationCodes.getByEmail", sqle.getMessage()));
+			return false;
+		}
 	}
 
-	public void deleteWhereEmail(String email) throws SQLException {
+	public void deleteWhereEmail(String email) {
 		try (Connection connection = Db.getDbConnection(); PreparedStatement statement = connection.prepareStatement("DELETE FROM email_confirmation_codes WHERE email = ?")) {
 			statement.setString(1, email);
+			statement.execute();
+		} catch (SQLException sqle) {
+			Log.exception(email, List.of("SQL Exception in TableEmailConfirmationCodes.deleteWhereEmail", sqle.getMessage()));
 		}
 	}
 }

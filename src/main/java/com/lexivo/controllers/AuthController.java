@@ -2,6 +2,7 @@ package com.lexivo.controllers;
 
 import com.lexivo.db.Db;
 import com.lexivo.schema.EmailConfirmationCodeData;
+import com.lexivo.schema.Log;
 import com.lexivo.schema.User;
 import com.lexivo.util.*;
 import com.sun.net.httpserver.HttpExchange;
@@ -45,7 +46,7 @@ public class AuthController extends Controller {
 		sendRouteDoesNotExistResponse(exchange);
 	}
 
-	private void login(HttpExchange exchange) throws IOException, SQLException {
+	private void login(HttpExchange exchange) throws IOException {
 		User requestBody = RequestDataCheck.getCheckedRequestBody(exchange, List.of("email", "password"), User.class);
 
 		if (requestBody == null) return;
@@ -111,6 +112,8 @@ public class AuthController extends Controller {
 			return;
 		}
 
+		Log.newUser(newUser.getEmail(), List.of());
+
 		sendConfirmationCodeEmail(exchange, newUser, HttpResponseStatus.OK);
 	}
 
@@ -142,11 +145,11 @@ public class AuthController extends Controller {
 	}
 
 	private void recoverPassword(HttpExchange exchange) throws IOException, SQLException {
-//		TODO:
+//		TODO: Implement
 		sendRouteDoesNotExistResponse(exchange);
 	}
 
-	private void sendConfirmationCodeEmail(HttpExchange exchange, User user, int responseCode) throws SQLException, IOException {
+	private void sendConfirmationCodeEmail(HttpExchange exchange, User user, int responseCode) throws IOException {
 		EmailConfirmationCodeData codeData = new EmailConfirmationCodeData(user.getEmail(), Randomizer.getEmailConfirmationCode());
 		boolean success = Db.emailConfirmationCodes().addConfirmationCode(codeData);
 		if (!success) {
