@@ -60,6 +60,22 @@ public abstract class Email {
 		sendTo(recipientEmail, "Email confirmation", htmlBody);
 	}
 
+	public static void sendRecoveredPassword(String recipientEmail, String newPassword) {
+		String htmlBody =
+				"""
+					<div style="padding: 50px;">
+						<p style="text-align: center; font-size: 20px; font-weight: bold;">New password</p>
+						<div style="padding: 10px; background-color: #f9f9f9;">
+							<p style="text-align: center; font-size: 20px; font-weight: bold; letter-spacing: 3px;">%</p>
+						</div>
+					</div>
+				""";
+
+		htmlBody = htmlBody.replace("%", newPassword);
+
+		sendTo(recipientEmail, "Email confirmation", htmlBody);
+	}
+
 	public static void sendEmailToAdmin(String subject, String message) {
 		String adminEmail = System.getenv("ADMIN_EMAIL");
 

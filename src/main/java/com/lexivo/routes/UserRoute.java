@@ -9,16 +9,19 @@ import com.sun.net.httpserver.HttpServer;
 public class UserRoute implements RouteWithServer {
 	private final String confirmEmailPath;
 	private final String recoverPasswordPath;
+	private final String changePasswordPath;
 
 	public UserRoute(String basePath) {
 		basePath = basePath + "/user";
 		this.confirmEmailPath = basePath + "/confirm_email";
 		this.recoverPasswordPath = basePath + "/recover_password";
+		this.changePasswordPath = basePath + "/change_password";
 	}
 
 	@Override
 	public void withServer(HttpServer server) {
 		new Route(server, confirmEmailPath, UserController.confirmEmail(confirmEmailPath).getClass());
-		new Route(server, recoverPasswordPath, UserController.recoverPassword(recoverPasswordPath).getClass(), new Filter[]{new AuthVerifier(UserRole.USER)});
+		new Route(server, recoverPasswordPath, UserController.recoverPassword(recoverPasswordPath).getClass());
+		new Route(server, changePasswordPath, UserController.changePassword(changePasswordPath).getClass(), new Filter[]{new AuthVerifier(UserRole.USER)});
 	}
 }

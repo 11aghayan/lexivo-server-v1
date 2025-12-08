@@ -14,4 +14,8 @@ public abstract class UserController extends Controller {
 	public static Controller recoverPassword(String path) {
 		return new RecoverPasswordController(path);
 	}
+
+	public static Controller changePassword(String path) {
+		return new ChangePasswordController(path);
+	}
 }

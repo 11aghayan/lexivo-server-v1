@@ -65,4 +65,19 @@ public class TableUsers {
 		}));
 		return success[0];
 	}
+
+	public boolean updateUserPassword(String email, String newPasswordHash) throws SQLException {
+		final boolean[] success = {false};
+		Db.executeTransaction((connection -> {
+			try(PreparedStatement statement = connection.prepareStatement("UPDATE users SET password_hash = ? WHERE email = ?")) {
+				statement.setString(1, newPasswordHash);
+				statement.setString(2, email);
+				success[0] = statement.executeUpdate() > 0;
+			}
+			catch (SQLException sqle) {
+				Log.exception(email, List.of("SQL Exception in TableUsers.updateUserPassword", sqle.getMessage()));
+			}
+		}));
+		return success[0];
+	}
 }
