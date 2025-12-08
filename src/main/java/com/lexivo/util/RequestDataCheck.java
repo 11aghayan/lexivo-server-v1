@@ -44,7 +44,7 @@ public abstract class RequestDataCheck {
 			return JsonUtil.fromJson(reqBodyString, clazz);
 		}
 		catch (IOException ioe) {
-			Log.exception(List.of("Server side exception in util.getCheckedRequestBody", ioe.getMessage()));
+			Log.exception("Server side exception in util.getCheckedRequestBody", ioe.getMessage());
 			Controller.sendServerSideErrorResponse(exchange);
 			return null;
 		}

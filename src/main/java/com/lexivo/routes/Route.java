@@ -1,4 +1,4 @@
-package com.lexivo.route;
+package com.lexivo.routes;
 
 import com.lexivo.controllers.Controller;
 import com.lexivo.filters.RateLimiter;
@@ -9,7 +9,7 @@ import com.sun.net.httpserver.HttpServer;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-public class Route {
+class Route {
 	public Route(HttpServer server, String basePath, Class<? extends Controller> controllerClass, Filter[] filters) {
 		try {
 			Constructor<? extends Controller> controllerConstructor = controllerClass.getConstructor(String.class);

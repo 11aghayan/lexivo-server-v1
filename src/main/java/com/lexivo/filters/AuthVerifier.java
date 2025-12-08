@@ -38,6 +38,7 @@ public class AuthVerifier extends Filter {
 			denyAccessResponse(exchange, HttpResponseStatus.FORBIDDEN);
 			return;
 		}
+		exchange.setAttribute(JwtUtil.CLAIM_EMAIL, decoded.getClaim(JwtUtil.CLAIM_EMAIL));
 		chain.doFilter(exchange);
 	}
 
@@ -51,7 +52,7 @@ public class AuthVerifier extends Filter {
 			Controller.sendJsonResponse(exchange, responseCode, "");
 		}
 		catch (IOException ioe) {
-			Log.exception(List.of("Server side IOException in filters.AuthVerifier.denyAccessResponse", ioe.getMessage()));
+			Log.exception("Server side IOException in filters.AuthVerifier.denyAccessResponse", ioe.getMessage());
 		}
 	}
 }

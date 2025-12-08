@@ -1,8 +1,8 @@
 package com.lexivo;
 
-import com.lexivo.controllers.AuthController;
-import com.lexivo.controllers.NotFoundController;
-import com.lexivo.route.Route;
+import com.lexivo.routes.AuthRoute;
+import com.lexivo.routes.NotFoundRoute;
+import com.lexivo.routes.UserRoute;
 import com.lexivo.schema.Log;
 import com.sun.net.httpserver.HttpServer;
 
@@ -33,7 +33,8 @@ public class App {
 	}
 
     private static void initRoutes(HttpServer server) {
-        new Route(server, BASE_URL + "/auth", AuthController.class);
-        new Route(server, "/", NotFoundController.class);
+        new AuthRoute(BASE_URL).withServer(server);
+        new UserRoute(BASE_URL).withServer(server);
+        new NotFoundRoute().withServer(server);
     }
 }

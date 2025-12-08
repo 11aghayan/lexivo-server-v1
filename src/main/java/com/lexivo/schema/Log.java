@@ -5,7 +5,6 @@ import com.lexivo.exceptions.InvalidLogCategoryException;
 import com.lexivo.util.DateAndTime;
 import com.lexivo.util.Email;
 
-import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -42,7 +41,7 @@ public class Log {
 		Log log = new Log(System.currentTimeMillis(), category, userEmail, messages);
 		printInConsole(log);
 		if (category == Category.EXCEPTION){
-			Email.sendEmailToAdmin("Lexivo server exception", "Exception thrown at " + DateAndTime.getFormattedDateAndTimeFromMs(log.createdAt) + "User related: " + (userEmail != null));
+			Email.sendEmailToAdmin("Lexivo server exception", "Exception thrown at " + DateAndTime.getFormattedDateAndTimeFromMs(log.createdAt) + ".\nUser related: " + (userEmail != null));
 		}
 		Db.logs().addLog(log);
 	}

@@ -7,7 +7,6 @@ import jakarta.mail.internet.MimeBodyPart;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
 
-import java.util.List;
 import java.util.Properties;
 
 public abstract class Email {
@@ -41,7 +40,7 @@ public abstract class Email {
 
 			Transport.send(msg);
 		} catch (Exception e) {
-			Log.exception(List.of("Exception while sending an email", e.getMessage(), "Subject: " + subject, "Recipient email: " + recipientEmail));
+			Log.exception("Exception while sending an email", e.getMessage(), "Subject: " + subject, "Recipient email: " + recipientEmail);
 		}
 	}
 
@@ -66,10 +65,8 @@ public abstract class Email {
 
 		String htmlBody =
 		"""
-			<div style="padding: 50px;">
-				<div style="padding: 10px; background-color: #f9f9f9;">
-					<p style="color: #9d3232; font-size: 18px; font-weight: semibold;">%</p>
-				</div>
+			<div style="padding: 10px; background-color: #f9f9f9;">
+				<p style="color: #9d3232; font-size: 16px; font-weight: semibold;">%</p>
 			</div>
 		""";
 

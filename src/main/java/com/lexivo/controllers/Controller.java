@@ -1,22 +1,22 @@
 package com.lexivo.controllers;
 
+import com.lexivo.db.Db;
+import com.lexivo.schema.EmailConfirmationCodeData;
 import com.lexivo.schema.Log;
-import com.lexivo.util.HttpResponseStatus;
-import com.lexivo.util.JsonUtil;
+import com.lexivo.schema.User;
+import com.lexivo.util.*;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import com.lexivo.util.HttpRequestMethod;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.Map;
 
 public abstract class Controller implements HttpHandler {
-	protected final String routeBasePath;
-	public Controller(String routeBasePath) {
-		this.routeBasePath = routeBasePath;
+	protected final String path;
+	public Controller(String path) {
+		this.path = path;
 	}
 
 	@Override
@@ -31,12 +31,12 @@ public abstract class Controller implements HttpHandler {
 				case null, default -> sendNotFoundResponse(exchange);
 			}
 		} catch (Exception ioe) {
-			Log.exception(List.of(
+			Log.exception(
 					"Server side IOException in controllers.Controller.handle",
 					"Request method: " + exchange.getRequestMethod(),
 					"URI.path: " + exchange.getRequestURI().getPath(),
 					"URI.query: " + exchange.getRequestURI().getQuery(),
-					ioe.getMessage()));
+					ioe.getMessage());
 			sendServerSideErrorResponse(exchange);
 		}
 	}
@@ -54,6 +54,19 @@ public abstract class Controller implements HttpHandler {
 	}
 	protected void delete(HttpExchange exchange) throws IOException, SQLException {
 		sendNotFoundResponse(exchange);
+	}
+
+	protected void sendConfirmationCodeEmailAndResponse(HttpExchange exchange, User user, int responseCode) throws IOException {
+		EmailConfirmationCodeData codeData = new EmailConfirmationCodeData(user.getEmail(), Randomizer.getEmailConfirmationCode());
+		boolean success = Db.emailConfirmationCodes().addConfirmationCode(codeData);
+		if (!success) {
+			sendServerSideErrorResponse(exchange);
+			return;
+		};
+
+		Email.sendConfirmationCode(user.getEmail(), codeData.getCode());
+
+		Controller.sendResponseWithMessage(exchange, responseCode, "Confirm your email within 10 minutes");
 	}
 
 	public static void sendJsonResponse(HttpExchange exchange, int responseCode, String jsonResponse) throws IOException {
@@ -80,7 +93,7 @@ public abstract class Controller implements HttpHandler {
 			sendResponseWithMessage(exchange, HttpResponseStatus.SERVER_SIDE_ERROR, "Server side error");
 		}
 		catch (IOException ioe) {
-			Log.exception(List.of("Server side IOException in controllers.Controller.sendServerSideErrorResponse", ioe.getMessage()));
+			Log.exception("Server side IOException in controllers.Controller.sendServerSideErrorResponse", ioe.getMessage());
 		}
 	}
 
@@ -91,6 +104,7 @@ public abstract class Controller implements HttpHandler {
 	public static void sendOkWithMessage(HttpExchange exchange, String message) throws IOException {
 		sendJsonResponse(exchange, HttpResponseStatus.OK, JsonUtil.toJson(Map.of("message", message)));
 	}
+
 
 	protected boolean pathsEqual(String path1, String path2) {
 		path1 = path1.endsWith("/") ? path1 : path1 + "/";
