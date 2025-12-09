@@ -63,6 +63,10 @@ public class Log {
 		}
 	}
 
+	public static void warning(String userEmail, List<String> messages) {
+		createLog(Category.WARNING, userEmail, messages);
+	}
+
 	public static void info(String userEmail, List<String> messages) {
 		createLog(Category.INFO, userEmail, messages);
 	}
@@ -86,14 +90,14 @@ public class Log {
 	public enum Category {
 		INFO,
 		NEW_USER,
-		TOO_MANY_REQUESTS,
+		WARNING,
 		EXCEPTION;
 
 		public static Category fromString(String s) throws InvalidLogCategoryException {
 			return switch(s) {
 				case "INFO" -> INFO;
 				case "NEW_USER" -> NEW_USER;
-				case "TOO_MANY_REQUESTS" -> TOO_MANY_REQUESTS;
+				case "WARNING" -> WARNING;
 				case "EXCEPTION" -> EXCEPTION;
 				default -> throw new InvalidLogCategoryException(s);
 			};
@@ -103,7 +107,7 @@ public class Log {
 			return switch(this) {
 				case INFO -> Color.INFO;
 				case NEW_USER -> Color.SUCCESS;
-				case TOO_MANY_REQUESTS -> Color.WARNING;
+				case WARNING -> Color.WARNING;
 				default -> Color.EXCEPTION;
 			};
 		}

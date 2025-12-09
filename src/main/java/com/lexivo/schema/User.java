@@ -5,10 +5,6 @@ public class User {
 	private String email;
 	private String passwordHash;
 	private boolean confirmed;
-	private String password;
-	private String adminPassword;
-	private String newPassword;
-	private String refreshToken;
 
 	public User(String email, String name, String passwordHash, boolean confirmed) {
 		this.email = email;
@@ -46,38 +42,6 @@ public class User {
 
 	public void setConfirmed(boolean confirmed) {
 		this.confirmed = confirmed;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
-	public String getAdminPassword() {
-		return adminPassword;
-	}
-
-	public void setAdminPassword(String adminPassword) {
-		this.adminPassword = adminPassword;
-	}
-
-	public String getNewPassword() {
-		return newPassword;
-	}
-
-	public void setNewPassword(String newPassword) {
-		this.newPassword = newPassword;
-	}
-
-	public String getRefreshToken() {
-		return refreshToken;
-	}
-
-	public void setRefreshToken(String refreshToken) {
-		this.refreshToken = refreshToken;
 	}
 
 	@Override

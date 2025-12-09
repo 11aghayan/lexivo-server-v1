@@ -3,6 +3,7 @@ package com.lexivo.controllers.user;
 import com.lexivo.controllers.Controller;
 import com.lexivo.controllers.auth.LoginController;
 import com.lexivo.db.Db;
+import com.lexivo.schema.AuthReqBody;
 import com.lexivo.schema.User;
 import com.lexivo.util.JwtUtil;
 import com.lexivo.util.RequestData;
@@ -20,7 +21,7 @@ public class ChangePasswordController extends Controller {
 
 	@Override
 	protected void put(HttpExchange exchange) throws IOException, SQLException {
-		User requestBody = RequestData.getCheckedRequestBody(exchange, List.of("password", "newPassword"), User.class);
+		AuthReqBody requestBody = RequestData.getCheckedRequestBody(exchange, List.of("password", "newPassword"), AuthReqBody.class);
 
 		if (requestBody == null) return;
 

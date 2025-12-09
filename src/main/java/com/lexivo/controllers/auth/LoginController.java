@@ -3,11 +3,10 @@ package com.lexivo.controllers.auth;
 import com.lexivo.controllers.Controller;
 import com.lexivo.db.Db;
 import com.lexivo.enums.UserRole;
+import com.lexivo.schema.AuthReqBody;
+import com.lexivo.schema.Log;
 import com.lexivo.schema.User;
-import com.lexivo.util.HttpResponseStatus;
-import com.lexivo.util.JsonUtil;
-import com.lexivo.util.JwtUtil;
-import com.lexivo.util.RequestData;
+import com.lexivo.util.*;
 import com.sun.net.httpserver.HttpExchange;
 import org.mindrot.jbcrypt.BCrypt;
 
@@ -26,7 +25,7 @@ public class LoginController extends Controller {
 
 	@Override
 	protected void post(HttpExchange exchange) throws IOException {
-		User requestBody = RequestData.getCheckedRequestBody(exchange, List.of("email", "password"), User.class);
+		AuthReqBody requestBody = RequestData.getCheckedRequestBody(exchange, List.of("email", "password"), AuthReqBody.class);
 
 		if (requestBody == null) return;
 
@@ -38,11 +37,17 @@ public class LoginController extends Controller {
 
 		if (user == null) return;
 
-		if (role == UserRole.ADMIN && !adminLoginCheckSuccessful(exchange, requestBody.getAdminPassword())) return;
+		if (role == UserRole.ADMIN && !adminLoginCheckSuccessful(exchange, email, requestBody.getAdminPassword())) {
+			Log.warning(email, List.of("Admin login attempt"));
+			return;
+		}
 
 		Map<String, String> jsonMap = new HashMap<>();
-		jsonMap.put(JwtUtil.KEY_ACCESS_TOKEN, JwtUtil.createAccessToken(email, role));
-		jsonMap.put(JwtUtil.KEY_REFRESH_TOKEN, JwtUtil.createRefreshToken(email, role));
+		long accessTokenValidMinutes = role == UserRole.ADMIN ? 15 : 5;
+		jsonMap.put(JwtUtil.KEY_ACCESS_TOKEN, JwtUtil.createHMAC256Token(email, role, accessTokenValidMinutes));
+		if (role == UserRole.USER) {
+			jsonMap.put(JwtUtil.KEY_REFRESH_TOKEN, JwtUtil.createHMAC256Token(email, role, DateAndTime.getMinutesInDays(7)));
+		}
 		jsonMap.put("email", user.getEmail());
 		jsonMap.put("name", user.getName());
 
@@ -74,7 +79,7 @@ public class LoginController extends Controller {
 		return user;
 	}
 
-	private boolean adminLoginCheckSuccessful(HttpExchange exchange, String adminPassword) throws IOException {
+	private boolean adminLoginCheckSuccessful(HttpExchange exchange, String email, String adminPassword) throws IOException {
 		if (adminPassword == null || adminPassword.isBlank()) {
 			sendIncorrectCredentialsResponse(exchange);
 			return false;
@@ -85,6 +90,7 @@ public class LoginController extends Controller {
 			sendIncorrectCredentialsResponse(exchange);
 			return false;
 		}
+		Log.warning(email, List.of("Admin login"));
 		return true;
 	}
 

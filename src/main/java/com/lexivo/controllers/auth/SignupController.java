@@ -2,6 +2,7 @@ package com.lexivo.controllers.auth;
 
 import com.lexivo.controllers.Controller;
 import com.lexivo.db.Db;
+import com.lexivo.schema.AuthReqBody;
 import com.lexivo.schema.Log;
 import com.lexivo.schema.User;
 import com.lexivo.util.HttpResponseStatus;
@@ -20,7 +21,7 @@ public class SignupController extends Controller {
 
 	@Override
 	protected void post(HttpExchange exchange) throws IOException, SQLException {
-		User requestBody = RequestData.getCheckedRequestBody(exchange, List.of("name", "email", "password"), User.class);
+		AuthReqBody requestBody = RequestData.getCheckedRequestBody(exchange, List.of("name", "email", "password"), AuthReqBody.class);
 		if (requestBody == null) return;
 
 		String name = requestBody.getName();

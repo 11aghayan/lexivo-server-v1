@@ -23,14 +23,6 @@ public abstract class JwtUtil {
 				.sign(Algorithm.HMAC256(System.getenv(KEY_JWT_SECRET)));
 	}
 
-	public static String createAccessToken(String email, UserRole role) {
-		return JwtUtil.createHMAC256Token(email, UserRole.USER, 5);
-	}
-
-	public static String createRefreshToken(String email, UserRole role) {
-		return JwtUtil.createHMAC256Token(email, role, DateAndTime.getMinutesInDays(7));
-	}
-
 	public static DecodedJWT verifyJwtToken(String jwtToken) {
 		try {
 			JWTVerifier verifier = JWT.require(Algorithm.HMAC256(System.getenv(KEY_JWT_SECRET)))
