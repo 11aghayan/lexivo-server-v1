@@ -1,19 +1,19 @@
 package com.lexivo.db;
 
+import com.lexivo.logger.Logger;
 import com.lexivo.schema.EmailConfirmationCodeData;
-import com.lexivo.schema.Log;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
 
 public class TableEmailConfirmationCodes {
 	private static final String COL_EMAIL = "email";
 	private static final String COL_CODE = "code";
 	private static final String COL_CREATED_AT = "created_at";
 	private static final String COL_EXPIRES_AT = "expires_at";
+	private final Logger logger = new Logger();
 
 	public EmailConfirmationCodeData getByEmail(String email) {
 		try (Connection connection = Db.getDbConnection(); PreparedStatement statement = connection.prepareStatement("SELECT * FROM email_confirmation_codes WHERE email = ?")) {
@@ -29,8 +29,8 @@ public class TableEmailConfirmationCodes {
 
 				return new EmailConfirmationCodeData(eml, code, createdAt, expiresAt);
 			}
-		} catch (SQLException sqle) {
-			Log.exception(email, List.of("SQL Exception in TableEmailConfirmationCodes.getByEmail", sqle.getMessage()));
+		} catch (Exception e) {
+			logger.exception(e, email, new String[]{"Exception in TableEmailConfirmationCodes.getByEmail", e.getMessage()});
 			return null;
 		}
 	}
@@ -59,8 +59,8 @@ public class TableEmailConfirmationCodes {
 			}));
 			return success[0];
 		}
-		catch (SQLException sqle) {
-			Log.exception(confirmationCodeData.getEmail(), List.of("SQL Exception in TableEmailConfirmationCodes.getByEmail", sqle.getMessage()));
+		catch (Exception e) {
+			logger.exception(e, confirmationCodeData.getEmail(), new String[]{"Exception in TableEmailConfirmationCodes.addConfirmationCode", e.getMessage()});
 			return false;
 		}
 	}
@@ -69,8 +69,8 @@ public class TableEmailConfirmationCodes {
 		try (Connection connection = Db.getDbConnection(); PreparedStatement statement = connection.prepareStatement("DELETE FROM email_confirmation_codes WHERE email = ?")) {
 			statement.setString(1, email);
 			statement.execute();
-		} catch (SQLException sqle) {
-			Log.exception(email, List.of("SQL Exception in TableEmailConfirmationCodes.deleteWhereEmail", sqle.getMessage()));
+		} catch (Exception e) {
+			logger.exception(e, email, new String[]{"Exception in TableEmailConfirmationCodes.deleteWhereEmail", e.getMessage()});
 		}
 	}
 }

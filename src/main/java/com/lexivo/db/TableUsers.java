@@ -1,19 +1,19 @@
 package com.lexivo.db;
 
-import com.lexivo.schema.Log;
+import com.lexivo.logger.Logger;
 import com.lexivo.schema.User;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
 
 public class TableUsers {
 	private static final String COL_NAME = "name";
 	private static final String COL_EMAIL = "email";
 	private static final String COL_PASS_HASH = "password_hash";
 	private static final String COL_CONFIRMED = "confirmed";
+	private final Logger logger = new Logger();
 
 	public User getByEmail(String email) {
 		try (Connection connection = Db.getDbConnection(); PreparedStatement statement = connection.prepareStatement("SELECT * FROM users WHERE email = ?")) {
@@ -29,8 +29,8 @@ public class TableUsers {
 				return new User(eml, name, pass_hash, confirmed);
 			}
 		}
-		catch (SQLException sqle) {
-			Log.exception(email, List.of("SQL Exception in TableUsers.getByEmail", sqle.getMessage()));
+		catch (Exception e) {
+			logger.exception(e, email, new String[]{"Exception in TableUsers.getByEmail", e.getMessage()});
 			return null;
 		}
 	}
@@ -45,8 +45,8 @@ public class TableUsers {
 					statement.setBoolean(4, user.isConfirmed());
 					success[0] = statement.executeUpdate() > 0;
 				}
-				catch (SQLException sqle) {
-					Log.exception(user.getEmail(), List.of("SQL Exception in TableUsers.addUser", sqle.getMessage()));
+				catch (Exception e) {
+					logger.exception(e, user.getEmail(), new String[]{"Exception in TableUsers.addUser", e.getMessage()});
 				}
 			}));
 		return success[0];
@@ -59,8 +59,8 @@ public class TableUsers {
 				statement.setString(1, email);
 				success[0] = statement.executeUpdate() > 0;
 			}
-			catch (SQLException sqle) {
-				Log.exception(email, List.of("SQL Exception in TableUsers.deleteUser", sqle.getMessage()));
+			catch (Exception e) {
+				logger.exception(e, email, new String[]{"Exception in TableUsers.deleteUser", e.getMessage()});
 			}
 		}));
 		return success[0];
@@ -74,8 +74,8 @@ public class TableUsers {
 				statement.setString(2, email);
 				success[0] = statement.executeUpdate() > 0;
 			}
-			catch (SQLException sqle) {
-				Log.exception(email, List.of("SQL Exception in TableUsers.updateUserPassword", sqle.getMessage()));
+			catch (Exception e) {
+				logger.exception(e, email, new String[]{"Exception in TableUsers.updateUserPassword", e.getMessage()});
 			}
 		}));
 		return success[0];
@@ -89,8 +89,8 @@ public class TableUsers {
 				statement.setString(2, email);
 				success[0] = statement.executeUpdate() > 0;
 			}
-			catch (SQLException sqle) {
-				Log.exception(email, List.of("SQL Exception in TableUsers.updateUserName", sqle.getMessage()));
+			catch (Exception e) {
+				logger.exception(e, email, new String[]{"Exception in TableUsers.updateUserName", e.getMessage()});
 			}
 		}));
 		return success[0];

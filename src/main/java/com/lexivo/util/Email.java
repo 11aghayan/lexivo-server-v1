@@ -1,6 +1,6 @@
 package com.lexivo.util;
 
-import com.lexivo.schema.Log;
+import com.lexivo.logger.Logger;
 import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeBodyPart;
@@ -12,6 +12,8 @@ import java.util.Properties;
 public abstract class Email {
 	private final static String SENDER_EMAIL = System.getenv("SENDER_EMAIL");
 	private final static String EMAIL_PASSWORD = System.getenv("EMAIL_PASSWORD");
+	private final static Logger logger = new Logger();
+
 	public static void sendTo(String recipientEmail, String subject, String htmlBody) {
 //		TODO: Edit when sender email changed
 		Properties props = new Properties();
@@ -40,7 +42,7 @@ public abstract class Email {
 
 			Transport.send(msg);
 		} catch (Exception e) {
-			Log.exception("Exception while sending an email", e.getMessage(), "Subject: " + subject, "Recipient email: " + recipientEmail);
+			logger.exception(e, new String[]{"Exception while sending an email", "Subject: " + subject, "Recipient email: " + recipientEmail});
 		}
 	}
 

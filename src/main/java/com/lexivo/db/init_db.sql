@@ -18,9 +18,10 @@ CREATE TABLE IF NOT EXISTS email_confirmation_codes(
     expires_at BIGINT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS LOGS(
+CREATE TABLE IF NOT EXISTS logs(
     created_at BIGINT NOT NULL,
     category SHORT_TEXT NOT NULL,
+    stack_trace TEXT[],
     messages TEXT[] NOT NULL,
     user_email SHORT_TEXT REFERENCES users(email)
 );

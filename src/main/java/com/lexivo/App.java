@@ -1,42 +1,105 @@
 package com.lexivo;
 
-import com.lexivo.routes.AuthRoute;
-import com.lexivo.routes.LogsRoute;
-import com.lexivo.routes.NotFoundRoute;
-import com.lexivo.routes.UserRoute;
-import com.lexivo.schema.Log;
+import com.lexivo.enums.UserRole;
+import com.lexivo.filters.AuthVerifierFilter;
+import com.lexivo.handlers.auth.AdminLoginHandler;
+import com.lexivo.handlers.auth.RefreshTokenHandler;
+import com.lexivo.handlers.auth.SignupHandler;
+import com.lexivo.handlers.auth.UserLoginHandler;
+import com.lexivo.handlers.dictionaries.GetAllDictionariesController;
+import com.lexivo.handlers.dictionaries.GetDictionaryByIdController;
+import com.lexivo.handlers.logs.LogsHandler;
+import com.lexivo.handlers.user.ChangePasswordHandler;
+import com.lexivo.handlers.user.ChangeUserNameHandler;
+import com.lexivo.handlers.user.ConfirmEmailHandler;
+import com.lexivo.handlers.user.RecoverPasswordHandler;
+import com.lexivo.logger.Logger;
 import com.sun.net.httpserver.HttpServer;
+import org.jandle.api.JandleApplication;
+import org.jandle.api.cors.Cors;
+import org.jandle.api.cors.CorsConfig;
+import org.jandle.api.ratelimiter.RateLimiter;
 
+import java.lang.reflect.InvocationTargetException;
 import java.net.InetSocketAddress;
-import java.util.Arrays;
 
 public class App {
     public static final String BASE_URL = "/api/v1";
+    public static int PORT = 8001;
     public static void main(String[] args) {
+        Logger logger = new Logger();
         try {
-            int PORT;
-            String envPort = System.getenv("PORT");
-            PORT = envPort == null ? 8001 : Integer.parseInt(envPort);
-
+            setPort();
             HttpServer server = HttpServer.create(new InetSocketAddress(PORT), 0);
+            JandleApplication app = new JandleApplication(server, BASE_URL);
 
-            initRoutes(server);
+            registerGlobalFilters(app);
+            registerHandlers(app);
 
-            server.setExecutor(null);
-
-            server.start();
-
-            Log.info("Server running on port " + PORT);
+            app.start(() -> logger.info("Server running on port " + PORT + " ..."));
         }
         catch (Exception e) {
-            Log.exception("Exception in App", Arrays.stream(e.getStackTrace()).toList().toString(), e.getMessage());
+            logger.exception(e, new String[]{"Exception in App"});
         }
 	}
 
-    private static void initRoutes(HttpServer server) {
-        new AuthRoute(BASE_URL).withServer(server);
-        new UserRoute(BASE_URL).withServer(server);
-        new LogsRoute(BASE_URL).withServer(server);
-        new NotFoundRoute().withServer(server);
+    private static void setPort() {
+        String envPort = System.getenv("PORT");
+        if (envPort != null)
+            PORT = Integer.parseInt(envPort);
+    }
+
+    private static void registerGlobalFilters(JandleApplication app) {
+        CorsConfig corsConfig = new CorsConfig();
+        corsConfig.setAllowCredentials(true);
+        Cors cors = new Cors(corsConfig);
+
+        RateLimiter rateLimiter = new RateLimiter(5, (double) 5 /60);
+
+        app.setGlobalFilters(
+                rateLimiter,
+                cors
+        );
+    }
+
+    private static void registerHandlers(JandleApplication app) throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        app.registerHandlers(
+            new UserLoginHandler(),
+            new AdminLoginHandler(),
+            new SignupHandler(),
+            new RefreshTokenHandler(),
+            new RecoverPasswordHandler(),
+            new ConfirmEmailHandler()
+        );
+
+        // Change password
+        app.registerHandler(
+                new ChangePasswordHandler(),
+                new AuthVerifierFilter(UserRole.USER)
+        );
+
+        // Change name
+        app.registerHandler(
+                new ChangeUserNameHandler(),
+                new AuthVerifierFilter(UserRole.USER)
+        );
+
+        // Get all dictionaries
+        app.registerHandler(
+                new GetAllDictionariesController(),
+                new AuthVerifierFilter(UserRole.USER)
+        );
+
+        // Get dictionary by id
+        app.registerHandler(
+                new GetDictionaryByIdController(),
+                new AuthVerifierFilter(UserRole.USER)
+        );
+
+        // Get logs
+        app.registerHandler(
+                new LogsHandler(),
+                new AuthVerifierFilter(UserRole.ADMIN)
+        );
     }
 }

@@ -1,6 +1,7 @@
 package com.lexivo.db;
 
 import com.lexivo.exceptions.InvalidLogCategoryException;
+import com.lexivo.logger.Logger;
 import com.lexivo.schema.Log;
 
 import java.sql.*;
@@ -12,7 +13,9 @@ public class TableLogs {
 	private static final String COL_CATEGORY = "category";
 	private static final String COL_USER_EMAIL = "user_email";
 	private static final String COL_CREATED_AT = "created_at";
+	private static final String COL_STACK_TRACE = "stack_trace";
 	private static final String COL_MESSAGES = "messages";
+	private final Logger logger = new Logger();
 
 
 	public List<Log> getLogs(Log.Category[] categories, String userEmail, long dateFrom, long dateTo) {
@@ -41,21 +44,28 @@ public class TableLogs {
 					Log.Category category = null;
 					long createdAt = resultSet.getLong(COL_CREATED_AT);
 					String[] messages = (String[]) resultSet.getArray(COL_MESSAGES).getArray();
+//					TODO: handle null
+					Array stackTraceRaw = resultSet.getArray(COL_STACK_TRACE);
+					String[] stackTrace = null;
+					if (stackTraceRaw != null) {
+						stackTrace = (String[]) stackTraceRaw.getArray();
+					}
 
 					try {
 						category = Log.Category.fromString(resultSet.getString(COL_CATEGORY));
 					}
 					catch (InvalidLogCategoryException e) {
-						Log.exception(email, List.of("SQL Exception in TableLogs.getLogs", e.getMessage()));
+						logger.exception(e,new String[]{"SQL Exception in TableLogs.getLogs", e.getMessage()});
 					}
+					logs.add(new Log(createdAt, email, category, stackTrace, messages));
 
-					logs.add(new Log(createdAt, category, email, Arrays.stream(messages).toList()));
 				}
 
 				return logs;
 			}
-		} catch (SQLException e) {
-			Log.exception(userEmail, List.of("SQL Exception in TableLogs.getLogs", e.getMessage()));
+		}
+		catch (Exception e) {
+			logger.exception(e, userEmail, new String[]{"Exception in TableLogs.getLogs", e.getMessage()});
 			return List.of();
 		}
 	}
@@ -63,16 +73,18 @@ public class TableLogs {
 	public void addLog(Log log) {
 		try {
 			Db.executeTransaction((connection -> {
-				try(PreparedStatement statement = connection.prepareStatement("INSERT INTO logs (category, user_email, created_at, messages) VALUES(?,?,?,?)")) {
-					statement.setString(1, log.getCategory().toString());
-					statement.setString(2, log.getUserEmail());
-					statement.setLong(3, log.getCreatedAt());
-					statement.setArray(4, connection.createArrayOf("SHORT_TEXT", log.getMessages()));
+				try(PreparedStatement statement = connection.prepareStatement("INSERT INTO logs (category, user_email, created_at, stack_trace, messages) VALUES(?,?,?,?,?)")) {
+					statement.setString(1, log.category().toString());
+					statement.setString(2, log.userEmail());
+					statement.setLong(3, log.createdAt());
+					statement.setArray(4, connection.createArrayOf("TEXT", log.stackTrace()));
+					statement.setArray(5, connection.createArrayOf("TEXT", log.messages()));
 					statement.execute();
 				}
 			}));
-		} catch (SQLException sqle) {
-			Log.exception(log.getUserEmail(), List.of("SQL Exception in TableLogs.addLog", sqle.getMessage()));
+		}
+		catch (Exception e) {
+			logger.exception(e, log.userEmail(), new String[]{"Exception in TableLogs.addLog"});
 		}
 	}
 }
