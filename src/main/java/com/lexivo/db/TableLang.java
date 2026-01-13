@@ -34,4 +34,22 @@ public class TableLang {
 		}
 	}
 
+	public Lang get(String lang) {
+		String sql = "SELECT * FROM lang WHERE " + COL_NAME + "= ?";
+		try (Connection connection = Db.getDbConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+			statement.setString(1, lang);
+			try (ResultSet resultSet = statement.executeQuery()) {
+				if (!resultSet.next()) return null;
+
+				String name = resultSet.getString(COL_NAME);
+				String nameNative = resultSet.getString(COL_NAME_NATIVE);
+				return new Lang(name, nameNative);
+			}
+		}
+		catch (Exception e) {
+			logger.exception(e, new String[]{"Exception in TableLang.get", e.getMessage()});
+			return null;
+		}
+	}
+
 }
