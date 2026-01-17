@@ -7,7 +7,6 @@ import com.lexivo.schema.appschema.Grammar;
 import com.lexivo.schema.appschema.Lang;
 import com.lexivo.schema.appschema.Word;
 import com.lexivo.util.ReceivedDataUtil;
-import com.sun.mail.imap.protocol.UIDSet;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -91,7 +90,63 @@ public class TableDict {
 		}
 	}
 
-//	TODO: Add (one for add and import, handle through requests), Update
+	public void add(Dict[] dictList, String userEmail) throws UnauthorizedAccessException {
+		String sql = "INSERT INTO word ("+
+				COL_ID +"," +
+				COL_USER_EMAIL + "," +
+				COL_LANG + "," +
+				") VALUES(?,?,?)";
+		try {
+
+
+			Db.executeTransaction((connection -> {
+				try(PreparedStatement statement = connection.prepareStatement(sql)) {
+					for (var dict : dictList) {
+						Db.lang().addIfAbsent(dict.lang);
+
+						String joinedId = ReceivedDataUtil.createJoinedId(userEmail, dict.id);
+						int index = 1;
+						statement.setString(index++, joinedId);
+						statement.setString(index++, userEmail);
+						statement.setString(index, dict.lang.name);
+						Db.word().add(dict.getWords().toArray(new Word[0]), dict.id, userEmail);
+						Db.grammar().add(dict.getGrammarList().toArray(new Grammar[0]), dict.id, userEmail);
+
+						statement.addBatch();
+					}
+					statement.executeBatch();
+				}
+			}));
+		}
+		catch (Exception e) {
+			logger.exception(e, userEmail, new String[]{"Exception in TableDict.add"});
+		}
+	}
+
+	public void update(Dict dict, String userEmail) throws UnauthorizedAccessException {
+		String sql = "UPDATE dict SET " +
+				COL_LANG + "= ?" +
+				" WHERE " + COL_ID + "= ?";
+		try {
+			String joinedId = ReceivedDataUtil.createJoinedId(userEmail, dict.id);
+			if (!isUserAuthorized(joinedId, userEmail)) throw new UnauthorizedAccessException();
+
+			Db.lang().addIfAbsent(dict.lang);
+
+			Db.executeTransaction((connection -> {
+				try(PreparedStatement statement = connection.prepareStatement(sql)) {
+					int index = 1;
+					statement.setString(index++, dict.lang.name);
+					statement.setString(index, joinedId);
+					statement.execute();
+				}
+			}));
+		}
+		catch (Exception e) {
+			if (e instanceof UnauthorizedAccessException) throw new UnauthorizedAccessException();
+			logger.exception(e, userEmail, new String[]{"Exception in TableDict.update"});
+		}
+	}
 
 	public void delete(String dictId, String userEmail) throws UnauthorizedAccessException {
 		String sql = "DELETE FROM dict WHERE " + COL_ID + " = ?";

@@ -137,7 +137,7 @@ public class TableWord {
 		}
 	}
 
-	public void add(Word word, String dictId, String userEmail) throws UnauthorizedAccessException {
+	public void add(Word[] words, String dictId, String userEmail) throws UnauthorizedAccessException {
 		String sql = "INSERT INTO word ("+
 					COL_ID +"," +
 					COL_DICT_ID + "," +
@@ -155,27 +155,33 @@ public class TableWord {
 					COL_DESC_DETAILS +
 				") VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 		try {
-			String joinedId = ReceivedDataUtil.createJoinedId(userEmail, dictId, word.id);
-			if (!Db.dict().isUserAuthorized(dictId, userEmail)) throw new UnauthorizedAccessException();
+			if (!Db.dict().isUserAuthorized(ReceivedDataUtil.createJoinedId(userEmail, dictId), userEmail)) throw new UnauthorizedAccessException();
+
 
 			Db.executeTransaction((connection -> {
 				try(PreparedStatement statement = connection.prepareStatement(sql)) {
-					int index = 1;
-					statement.setString(index++, joinedId);
-					statement.setString(index++, dictId);
-					statement.setString(index++, userEmail);
-					statement.setString(index++, word.type);
-					statement.setString(index++, word.level);
-					statement.setString(index++, word.gender);
-					statement.setInt(index++, word.practiceCountdown);
-					statement.setString(index++, word.ntv);
-					statement.setString(index++, word.ntvDetails);
-					statement.setString(index++, word.plural);
-					statement.setString(index++, word.past1);
-					statement.setString(index++, word.past2);
-					statement.setString(index++, word.desc);
-					statement.setString(index, word.descDetails);
-					statement.execute();
+					for(var word : words) {
+						String joinedId = ReceivedDataUtil.createJoinedId(userEmail, dictId, word.id);
+						
+						int index = 1;
+						statement.setString(index++, joinedId);
+						statement.setString(index++, dictId);
+						statement.setString(index++, userEmail);
+						statement.setString(index++, word.type);
+						statement.setString(index++, word.level);
+						statement.setString(index++, word.gender);
+						statement.setInt(index++, word.practiceCountdown);
+						statement.setString(index++, word.ntv);
+						statement.setString(index++, word.ntvDetails);
+						statement.setString(index++, word.plural);
+						statement.setString(index++, word.past1);
+						statement.setString(index++, word.past2);
+						statement.setString(index++, word.desc);
+						statement.setString(index, word.descDetails);
+
+						statement.addBatch();
+					}
+					statement.executeBatch();
 				}
 			}));
 		}

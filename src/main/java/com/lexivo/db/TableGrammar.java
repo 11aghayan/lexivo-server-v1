@@ -90,7 +90,7 @@ public class TableGrammar {
 		}
 	}
 
-	public void add(Grammar grammar, String dictId, String userEmail) throws UnauthorizedAccessException {
+	public void add(Grammar[] grammarList, String dictId, String userEmail) throws UnauthorizedAccessException {
 		String sql = "INSERT INTO grammar ("+
 				COL_ID +"," +
 				COL_DICT_ID + "," +
@@ -98,18 +98,23 @@ public class TableGrammar {
 				COL_HEADER +
 				") VALUES(?,?,?,?)";
 		try {
-			String joinedId = ReceivedDataUtil.createJoinedId(userEmail, dictId, grammar.id);
-			if (!Db.dict().isUserAuthorized(dictId, userEmail)) throw new UnauthorizedAccessException();
+			if (!Db.dict().isUserAuthorized(ReceivedDataUtil.createJoinedId(userEmail, dictId), userEmail)) throw new UnauthorizedAccessException();
 
 			Db.executeTransaction((connection -> {
 				try(PreparedStatement statement = connection.prepareStatement(sql)) {
-					int index = 1;
-					statement.setString(index++, joinedId);
-					statement.setString(index++, dictId);
-					statement.setString(index++, userEmail);
-					statement.setString(index, grammar.header);
-					submenuTable.add(grammar.getSubmenuList(), joinedId, userEmail);
-					statement.execute();
+					for (var grammar : grammarList) {
+						String joinedId = ReceivedDataUtil.createJoinedId(userEmail, dictId, grammar.id);
+
+						int index = 1;
+						statement.setString(index++, joinedId);
+						statement.setString(index++, dictId);
+						statement.setString(index++, userEmail);
+						statement.setString(index, grammar.header);
+						submenuTable.add(grammar.getSubmenuList(), joinedId, userEmail);
+
+						statement.addBatch();
+					}
+					statement.executeBatch();
 				}
 			}));
 		}

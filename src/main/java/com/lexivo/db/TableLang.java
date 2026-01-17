@@ -1,7 +1,10 @@
 package com.lexivo.db;
 
 import com.lexivo.logger.Logger;
+import com.lexivo.schema.appschema.Grammar;
 import com.lexivo.schema.appschema.Lang;
+import com.lexivo.schema.appschema.Word;
+import com.lexivo.util.ReceivedDataUtil;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -52,4 +55,23 @@ public class TableLang {
 		}
 	}
 
+	public void addIfAbsent(Lang lang) {
+		String sql = "INSERT INTO lang ("+
+				COL_NAME +"," +
+				COL_NAME_NATIVE + "," +
+				") VALUES(?,?) ON CONFLICT DO NOTHING";
+		try {
+			Db.executeTransaction((connection -> {
+				try(PreparedStatement statement = connection.prepareStatement(sql)) {
+					int index = 1;
+					statement.setString(index++, lang.name);
+					statement.setString(index, lang.nameNative);
+					statement.execute();
+				}
+			}));
+		}
+		catch (Exception e) {
+			logger.exception(e, new String[]{"Exception in TableLang.addIfAbsent"});
+		}
+	}
 }
