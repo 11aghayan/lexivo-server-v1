@@ -1,6 +1,7 @@
 package com.lexivo.schema.appschema;
 
 import com.lexivo.exceptions.MissingIdException;
+import com.lexivo.exceptions.MissingRequiredDataException;
 import com.lexivo.exceptions.ValueOutOfRangeException;
 import com.lexivo.schema.appschema.enums.WordGender;
 import com.lexivo.schema.appschema.enums.WordLevel;
@@ -20,9 +21,10 @@ public class Word {
 	public final String desc;
 	public final String descDetails;
 
-	public Word(String id, WordType type, WordLevel level, WordGender gender, int practiceCountdown, String ntv, String ntvDetails, String plural, String past1, String past2, String desc, String descDetails) throws MissingIdException, ValueOutOfRangeException {
+	public Word(String id, WordType type, WordLevel level, WordGender gender, int practiceCountdown, String ntv, String ntvDetails, String plural, String past1, String past2, String desc, String descDetails) throws MissingIdException, ValueOutOfRangeException, MissingRequiredDataException {
 		if (id == null || id.isBlank()) throw new MissingIdException();
 		if (practiceCountdown < 0) throw new ValueOutOfRangeException(practiceCountdown, 0, 7);
+		checkRequiredData(ntv, plural, type, gender);
 
 		this.id = id;
 		this.type = type;
@@ -36,5 +38,16 @@ public class Word {
 		this.past2 = past2;
 		this.desc = desc;
 		this.descDetails = descDetails;
+	}
+
+	private void checkRequiredData(String ntv, String plural, WordType type, WordGender gender) throws MissingRequiredDataException {
+		if (WordType.NOUN == type && WordGender.PLURAL == gender && (plural == null || plural.isBlank()))
+			throw new MissingRequiredDataException("'plural' is required for GENDER=PLURAL");
+
+		if (ntv == null || ntv.isBlank())
+			throw new MissingRequiredDataException("'native' is required");
+
+		if (desc == null || desc.isBlank())
+			throw new MissingRequiredDataException("'desc' is required");
 	}
 }
