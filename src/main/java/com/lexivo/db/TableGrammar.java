@@ -117,8 +117,10 @@ public class TableGrammar {
 				}
 			}));
 		}
+		catch (UnauthorizedAccessException e) {
+			throw e;
+		}
 		catch (Exception e) {
-			if (e instanceof UnauthorizedAccessException) throw new UnauthorizedAccessException();
 			logger.exception(e, userEmail, new String[]{"Exception in TableGrammar.add"});
 		}
 	}
@@ -142,8 +144,10 @@ public class TableGrammar {
 				}
 			}));
 		}
+		catch (UnauthorizedAccessException e) {
+			throw e;
+		}
 		catch (Exception e) {
-			if (e instanceof UnauthorizedAccessException) throw new UnauthorizedAccessException();
 			logger.exception(e, userEmail, new String[]{"Exception in TableGrammar.update"});
 		}
 	}
@@ -160,8 +164,10 @@ public class TableGrammar {
 				}
 			}));
 		}
+		catch (UnauthorizedAccessException e) {
+			throw e;
+		}
 		catch (Exception e) {
-			if (e instanceof UnauthorizedAccessException) throw new UnauthorizedAccessException();
 			logger.exception(e, userEmail, new String[]{"Exception in TableGrammar.delete"});
 		}
 	}

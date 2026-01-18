@@ -1,9 +1,14 @@
 package com.lexivo.util;
 
 import com.lexivo.logger.Logger;
+import com.lexivo.schema.appschema.Dict;
+import com.lexivo.schema.appschema.Grammar;
+import com.lexivo.schema.appschema.GrammarSubmenu;
+import com.lexivo.schema.appschema.Word;
+import com.lexivo.schema.appschema.enums.WordGender;
+import com.lexivo.schema.appschema.enums.WordType;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public abstract class ValidationUtil {
 	private static final Logger logger = new Logger();
@@ -33,5 +38,54 @@ public abstract class ValidationUtil {
 			}
 		}
 		return missingValues.toArray(String[]::new);
+	}
+
+	public static Map<String, List<String>> checkWords(Word[] words) {
+		Map<String, List<String>> wordsWithIncorrectData = new HashMap<>();
+
+		for (var word : words) {
+			String mainVal = word.type == WordType.NOUN || word.gender == WordGender.PLURAL ? word.plural : word.ntv;
+
+			if (mainVal == null || mainVal.isBlank())
+				Objects.requireNonNull(wordsWithIncorrectData.putIfAbsent(word.id, new LinkedList<>())).add("'native' is required (for nouns with 'gender = plural' 'plural' is required)");
+
+			if (word.desc == null)
+				Objects.requireNonNull(wordsWithIncorrectData.putIfAbsent(word.id, new LinkedList<>())).add("'desc' is required");
+		}
+
+		return wordsWithIncorrectData.isEmpty() ? null : wordsWithIncorrectData;
+	}
+
+	public static Map<String, List<String>> checkGrammars(Grammar[] grammars) {
+		Map<String, List<String>> grammarsWithIncorrectData = new HashMap<>();
+
+		for (var grammar : grammars) {
+			if (grammar.header == null || grammar.header.isBlank())
+				Objects.requireNonNull(grammarsWithIncorrectData.putIfAbsent(grammar.id, new LinkedList<>())).add("'header' is required");
+
+			if (!checksGrammarSubmenus(grammar.getSubmenuList()).isEmpty())
+				Objects.requireNonNull(grammarsWithIncorrectData.putIfAbsent(grammar.id, new LinkedList<>())).add(grammar.getSubmenuList().toString());
+		}
+
+		return grammarsWithIncorrectData.isEmpty() ? null : grammarsWithIncorrectData;
+	}
+
+	private static List<String> checksGrammarSubmenus(List<GrammarSubmenu> grammarSubmenus) {
+		List<String> submenusWithIncorrectData = new LinkedList<>();
+		boolean headerError = false;
+		boolean explanationError = false;
+
+		for (var sm : grammarSubmenus) {
+			if (!headerError && sm.header == null || sm.header.isBlank()) {
+				submenusWithIncorrectData.add("'header' is required");
+				headerError = true;
+			}
+
+			if (!explanationError && sm.getExplanations().isEmpty()) {
+				submenusWithIncorrectData.add("each grammar submenu must have at least one explanation");
+			}
+		}
+
+		return submenusWithIncorrectData;
 	}
 }

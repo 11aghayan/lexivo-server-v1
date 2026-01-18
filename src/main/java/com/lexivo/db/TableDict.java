@@ -1,6 +1,9 @@
 package com.lexivo.db;
 
+import com.lexivo.exceptions.IncorrectEnumStringException;
+import com.lexivo.exceptions.MissingIdException;
 import com.lexivo.exceptions.UnauthorizedAccessException;
+import com.lexivo.exceptions.ValueOutOfRangeException;
 import com.lexivo.logger.Logger;
 import com.lexivo.schema.appschema.Dict;
 import com.lexivo.schema.appschema.Grammar;
@@ -35,7 +38,7 @@ public class TableDict {
 		}
 	}
 
-	public List<Dict> getAllOfUser(String userEmail) {
+	public List<Dict> getAllOfUser(String userEmail) throws IncorrectEnumStringException, MissingIdException, ValueOutOfRangeException {
 		String sql = "SELECT * FROM dict WHERE " + COL_USER_EMAIL + "= ?" ;
 		try (Connection connection = Db.getDbConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
 			statement.setString(1, userEmail);
@@ -58,13 +61,16 @@ public class TableDict {
 				return dictList;
 			}
 		}
+		catch (IncorrectEnumStringException | MissingIdException | ValueOutOfRangeException e) {
+			throw e;
+		}
 		catch(Exception e) {
 			logger.exception(e, new String[]{"Exception in TableDict.getAllOfUser", e.getMessage()});
 			return List.of();
 		}
 	}
 
-	public Dict getById(String dictId, String userEmail) {
+	public Dict getById(String dictId, String userEmail) throws IncorrectEnumStringException, MissingIdException, ValueOutOfRangeException {
 		String sql = "SELECT * FROM dict WHERE " + COL_ID + "= ?" ;
 		try (Connection connection = Db.getDbConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
 			statement.setString(1, ReceivedDataUtil.createJoinedId(dictId, userEmail));
@@ -83,6 +89,9 @@ public class TableDict {
 
 				return new Dict(dictId, words, grammarList, lang);
 			}
+		}
+		catch (IncorrectEnumStringException | MissingIdException | ValueOutOfRangeException e) {
+			throw e;
 		}
 		catch(Exception e) {
 			logger.exception(e, new String[]{"Exception in TableDict.getById", e.getMessage()});
@@ -143,8 +152,10 @@ public class TableDict {
 				}
 			}));
 		}
+		catch (UnauthorizedAccessException e) {
+			throw e;
+		}
 		catch (Exception e) {
-			if (e instanceof UnauthorizedAccessException) throw new UnauthorizedAccessException();
 			logger.exception(e, userEmail, new String[]{"Exception in TableDict.update"});
 		}
 	}
@@ -164,8 +175,10 @@ public class TableDict {
 				}
 			}));
 		}
+		catch (UnauthorizedAccessException e) {
+			throw e;
+		}
 		catch (Exception e) {
-			if (e instanceof UnauthorizedAccessException) throw new UnauthorizedAccessException();
 			logger.exception(e, userEmail, new String[]{"Exception in TableDict.delete"});
 		}
 	}

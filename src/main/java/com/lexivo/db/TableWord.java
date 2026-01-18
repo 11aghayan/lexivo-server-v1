@@ -1,8 +1,14 @@
 package com.lexivo.db;
 
+import com.lexivo.exceptions.IncorrectEnumStringException;
+import com.lexivo.exceptions.MissingIdException;
 import com.lexivo.exceptions.UnauthorizedAccessException;
+import com.lexivo.exceptions.ValueOutOfRangeException;
 import com.lexivo.logger.Logger;
 import com.lexivo.schema.appschema.Word;
+import com.lexivo.schema.appschema.enums.WordGender;
+import com.lexivo.schema.appschema.enums.WordLevel;
+import com.lexivo.schema.appschema.enums.WordType;
 import com.lexivo.util.ReceivedDataUtil;
 
 import java.sql.Connection;
@@ -43,7 +49,7 @@ public class TableWord {
 		}
 	}
 
-	public List<Word> getAll(String dictId, String userEmail) {
+	public List<Word> getAll(String dictId, String userEmail) throws IncorrectEnumStringException, MissingIdException, ValueOutOfRangeException {
 		String sql = "SELECT * FROM word WHERE " + COL_DICT_ID + " = ?";
 		try (Connection connection = Db.getDbConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
 			String joinedId = ReceivedDataUtil.createJoinedId(userEmail, dictId);
@@ -69,9 +75,9 @@ public class TableWord {
 					String[] idList = ReceivedDataUtil.separateJoinedId(id);
 					words.add(new Word(
 							idList[idList.length - 1],
-							type,
-							level,
-							gender,
+							WordType.fromString(type),
+							WordLevel.fromString(level),
+							WordGender.fromString(gender),
 							practiceCountdown,
 							ntv,
 							ntvDetails,
@@ -86,13 +92,16 @@ public class TableWord {
 				return words;
 			}
 		}
+		catch (IncorrectEnumStringException | MissingIdException | ValueOutOfRangeException e) {
+			throw e;
+		}
 		catch (Exception e) {
 			logger.exception(e, new String[]{"Exception in TableWord.getAll", e.getMessage()});
 			return List.of();
 		}
 	}
 
-	public Word getById(String wordId, String dictId, String userEmail) {
+	public Word getById(String wordId, String dictId, String userEmail) throws IncorrectEnumStringException, MissingIdException, ValueOutOfRangeException {
 		String sql = "SELECT * FROM word WHERE " + COL_ID + " = ?";
 		try (Connection connection = Db.getDbConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
 			String joinedId = ReceivedDataUtil.createJoinedId(userEmail, dictId, wordId);
@@ -117,9 +126,9 @@ public class TableWord {
 				String[] idList = ReceivedDataUtil.separateJoinedId(id);
 				return new Word(
 						idList[idList.length - 1],
-						type,
-						level,
-						gender,
+						WordType.fromString(type),
+						WordLevel.fromString(level),
+						WordGender.fromString(gender),
 						practiceCountdown,
 						ntv,
 						ntvDetails,
@@ -130,6 +139,9 @@ public class TableWord {
 						descDetails
 				);
 			}
+		}
+		catch (IncorrectEnumStringException | MissingIdException | ValueOutOfRangeException e) {
+			throw e;
 		}
 		catch (Exception e) {
 			logger.exception(e, new String[]{"Exception in TableWord.getById", e.getMessage()});
@@ -167,9 +179,9 @@ public class TableWord {
 						statement.setString(index++, joinedId);
 						statement.setString(index++, dictId);
 						statement.setString(index++, userEmail);
-						statement.setString(index++, word.type);
-						statement.setString(index++, word.level);
-						statement.setString(index++, word.gender);
+						statement.setString(index++, word.type.toString());
+						statement.setString(index++, word.level.toString());
+						statement.setString(index++, word.gender == null ? null : word.gender.toString());
 						statement.setInt(index++, word.practiceCountdown);
 						statement.setString(index++, word.ntv);
 						statement.setString(index++, word.ntvDetails);
@@ -185,8 +197,10 @@ public class TableWord {
 				}
 			}));
 		}
+		catch (UnauthorizedAccessException e) {
+			throw e;
+		}
 		catch (Exception e) {
-			if (e instanceof UnauthorizedAccessException) throw new UnauthorizedAccessException();
 			logger.exception(e, userEmail, new String[]{"Exception in TableWord.add"});
 		}
 	}
@@ -212,9 +226,9 @@ public class TableWord {
 			Db.executeTransaction((connection -> {
 				try(PreparedStatement statement = connection.prepareStatement(sql)) {
 					int index = 1;
-					statement.setString(index++, word.type);
-					statement.setString(index++, word.level);
-					statement.setString(index++, word.gender);
+					statement.setString(index++, word.type.toString());
+					statement.setString(index++, word.level.toString());
+					statement.setString(index++, word.gender == null ? null : word.gender.toString());
 					statement.setInt(index++, word.practiceCountdown);
 					statement.setString(index++, word.ntv);
 					statement.setString(index++, word.ntvDetails);
@@ -228,8 +242,10 @@ public class TableWord {
 				}
 			}));
 		}
+		catch (UnauthorizedAccessException e) {
+			throw e;
+		}
 		catch (Exception e) {
-			if (e instanceof UnauthorizedAccessException) throw new UnauthorizedAccessException();
 			logger.exception(e, userEmail, new String[]{"Exception in TableWord.update"});
 		}
 	}
@@ -246,8 +262,10 @@ public class TableWord {
 				}
 			}));
 		}
+		catch (UnauthorizedAccessException e) {
+			throw e;
+		}
 		catch (Exception e) {
-			if (e instanceof UnauthorizedAccessException) throw new UnauthorizedAccessException();
 			logger.exception(e, userEmail, new String[]{"Exception in TableWord.delete"});
 		}
 	}
@@ -267,8 +285,10 @@ public class TableWord {
 				}
 			}));
 		}
+		catch (UnauthorizedAccessException e) {
+			throw e;
+		}
 		catch (Exception e) {
-			if (e instanceof UnauthorizedAccessException) throw new UnauthorizedAccessException();
 			logger.exception(e, userEmail, new String[]{"Exception in TableWord.updateCountdown"});
 		}
 	}
