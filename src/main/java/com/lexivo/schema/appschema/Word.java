@@ -22,7 +22,7 @@ public class Word {
 	public final String descDetails;
 
 	public Word(String id, WordType type, WordLevel level, WordGender gender, int practiceCountdown, String ntv, String ntvDetails, String plural, String past1, String past2, String desc, String descDetails) throws MissingIdException, ValueOutOfRangeException, MissingRequiredDataException {
-		if (id == null || id.isBlank()) throw new MissingIdException();
+		if (id == null || id.isBlank()) throw new MissingIdException("word id is missing");
 		if (practiceCountdown < 0) throw new ValueOutOfRangeException(practiceCountdown, 0, 7);
 		checkRequiredData(ntv, plural, type, gender);
 

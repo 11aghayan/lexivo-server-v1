@@ -1,5 +1,5 @@
 package com.lexivo.exceptions;
 
 public class MissingIdException extends Exception {
-	public MissingIdException() {}
+	public MissingIdException(String message) {super(message);}
 }

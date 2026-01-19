@@ -54,14 +54,11 @@ public class WordBodyValidationFilter implements Filter {
 			request.setAttribute("word", w);
 			filterChain.next(request, response);
 		}
-		catch (MissingIdException e) {
-			StandardResponse.jsonWithMessages(response, HttpResponseStatus.BAD_REQUEST, "id is missing");
+		catch (MissingIdException | IncorrectEnumStringException | MissingRequiredDataException e) {
+			StandardResponse.jsonWithMessages(response, HttpResponseStatus.BAD_REQUEST, e.getMessage());
 		}
 		catch (ValueOutOfRangeException e) {
 			StandardResponse.jsonWithMessages(response, HttpResponseStatus.BAD_REQUEST, "practiceCountdown should be an integer between range [" + e.minValue + "-" + e.maxValue + "]", "provided: " + e.providedValue);
-		}
-		catch (IncorrectEnumStringException | MissingRequiredDataException e) {
-			StandardResponse.jsonWithMessages(response, HttpResponseStatus.BAD_REQUEST, e.getMessage());
 		}
 		catch (Exception e) {
 			StandardResponse.jsonWithMessages(response, HttpResponseStatus.BAD_REQUEST, "invalid data provided");

@@ -12,7 +12,7 @@ public class Grammar {
 	private final List<GrammarSubmenu> submenuList;
 
 	public Grammar(String id, String header, List<GrammarSubmenu> submenuList) throws MissingIdException, MissingRequiredDataException {
-		if (id == null || id.isBlank()) throw new MissingIdException();
+		if (id == null || id.isBlank()) throw new MissingIdException("grammar id is missing");
 		checkRequiredData(header);
 
 		this.id = id;

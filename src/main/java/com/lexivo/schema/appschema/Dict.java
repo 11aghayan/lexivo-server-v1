@@ -12,7 +12,7 @@ public class Dict {
 	public final Lang lang;
 
 	public Dict(String id, List<Word> words, List<Grammar> grammarList, Lang lang) throws MissingIdException {
-		if (id == null || id.isBlank()) throw new MissingIdException();
+		if (id == null || id.isBlank()) throw new MissingIdException("dict id is missing");
 
 		this.id = id;
 		this.words = words;
