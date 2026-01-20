@@ -1,7 +1,7 @@
 package com.lexivo.schema.appschema;
 
 import com.lexivo.exceptions.MissingIdException;
-import com.lexivo.exceptions.MissingRequiredDataException;
+import com.lexivo.exceptions.InvalidDataException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +11,7 @@ public class Grammar {
 	public final String header;
 	private final List<GrammarSubmenu> submenuList;
 
-	public Grammar(String id, String header, List<GrammarSubmenu> submenuList) throws MissingIdException, MissingRequiredDataException {
+	public Grammar(String id, String header, List<GrammarSubmenu> submenuList) throws MissingIdException, InvalidDataException {
 		if (id == null || id.isBlank()) throw new MissingIdException("grammar id is missing");
 		checkRequiredData(header);
 
@@ -24,8 +24,8 @@ public class Grammar {
 		return new ArrayList<>(submenuList);
 	}
 
-	private void checkRequiredData(String header) throws MissingRequiredDataException {
+	private void checkRequiredData(String header) throws InvalidDataException {
 		if (header == null || header.isBlank())
-			throw new MissingRequiredDataException("'header' is required");
+			throw new InvalidDataException("'header' is required");
 	}
 }
