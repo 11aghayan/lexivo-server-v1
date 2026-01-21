@@ -53,9 +53,9 @@ public class TableLang {
 	}
 
 	public void addIfAbsent(Lang lang) {
-		String sql = "INSERT INTO lang ("+
+		String sql = "INSERT INTO lang (" +
 				COL_NAME +"," +
-				COL_NAME_NATIVE + "," +
+				COL_NAME_NATIVE +
 				") VALUES(?,?) ON CONFLICT DO NOTHING";
 		try {
 			Db.executeTransaction((connection -> {
@@ -68,7 +68,7 @@ public class TableLang {
 			}));
 		}
 		catch (Exception e) {
-			logger.exception(e, new String[]{"Exception in TableLang.addIfAbsent"});
+			logger.exception(e, new String[]{"Exception in TableLang.addIfAbsent", e.getMessage()});
 		}
 	}
 }

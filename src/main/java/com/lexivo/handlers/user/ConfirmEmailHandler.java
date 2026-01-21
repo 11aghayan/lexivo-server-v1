@@ -13,7 +13,6 @@ import org.jandle.api.http.RequestMethod;
 import org.jandle.api.http.Response;
 
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.List;
 
 @HttpRequestHandler(method = RequestMethod.POST, path = "/user/confirm_email")
@@ -54,8 +53,7 @@ public class ConfirmEmailHandler implements Handler {
 			StandardResponse.jsonWithMessages(response, HttpResponseStatus.OK, "Email successfully confirmed");
 		}
 		catch (Exception e) {
-			logger.exception(e, email, new String[]{e.getMessage()});
-			response.sendStatus(HttpResponseStatus.SERVER_SIDE_ERROR);
+			StandardResponse.serverSideError(response, e);
 		}
 	}
 }

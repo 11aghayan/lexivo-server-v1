@@ -1,11 +1,8 @@
 package com.lexivo.handlers.dict;
 
 import com.lexivo.db.Db;
-import com.lexivo.exceptions.IncorrectEnumStringException;
-import com.lexivo.exceptions.MissingIdException;
-import com.lexivo.exceptions.ValueOutOfRangeException;
+import com.lexivo.exceptions.UnauthorizedAccessException;
 import com.lexivo.filters.AuthVerifierFilter;
-import com.lexivo.schema.appschema.Dict;
 import com.lexivo.util.HttpResponseStatus;
 import com.lexivo.util.StandardResponse;
 import org.jandle.api.annotations.HttpRequestFilters;
@@ -16,27 +13,25 @@ import org.jandle.api.http.RequestMethod;
 import org.jandle.api.http.Response;
 
 import java.io.IOException;
-import java.util.Map;
 
-@HttpRequestHandler(method = RequestMethod.GET, path = "/dict/{id}")
-@HttpRequestFilters({ AuthVerifierFilter.class })
-public class GetDictByIdHandler implements Handler {
+@HttpRequestHandler(method = RequestMethod.DELETE, path = "/dict/{id}")
+@HttpRequestFilters({AuthVerifierFilter.class})
+public class DeleteDictHandler implements Handler {
+
 	@Override
 	public void handle(Request request, Response response) throws IOException {
 		try {
 			String dictId = request.getParam("id");
 			String userEmail = (String) request.getAttribute("userEmail");
 
-			Dict dict = Db.dict().getById(dictId, userEmail);
+			Db.dict().delete(dictId, userEmail);
 
-			response
-					.status(HttpResponseStatus.OK)
-					.sendJson(Map.of("dict", dict));
+			response.sendStatus(HttpResponseStatus.OK);
 		}
-		catch (IncorrectEnumStringException | MissingIdException | ValueOutOfRangeException e) {
-			StandardResponse.jsonWithMessages(response, HttpResponseStatus.BAD_REQUEST, e.getMessage());
+		catch (UnauthorizedAccessException e) {
+			StandardResponse.jsonWithMessages(response, HttpResponseStatus.UNAUTHORIZED);
 		}
-		catch(Exception e) {
+		catch (Exception e) {
 			StandardResponse.serverSideError(response, e);
 		}
 	}

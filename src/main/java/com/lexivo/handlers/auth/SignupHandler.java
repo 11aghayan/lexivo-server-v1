@@ -12,7 +12,6 @@ import org.jandle.api.http.Response;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.List;
 
 @HttpRequestHandler(method = RequestMethod.POST, path = "/auth/signup")
@@ -60,8 +59,7 @@ public class SignupHandler implements Handler {
 			StandardResponse.sendConfirmationCode(response, user);
 		}
 		catch (Exception e) {
-			logger.exception(e, email, new String[]{e.getMessage()});
-			response.sendStatus(HttpResponseStatus.SERVER_SIDE_ERROR);
+			StandardResponse.serverSideError(response, e);
 		}
 	}
 }

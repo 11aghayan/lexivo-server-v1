@@ -2,7 +2,6 @@ package com.lexivo.handlers.auth;
 
 import com.lexivo.db.Db;
 import com.lexivo.enums.UserRole;
-import com.lexivo.logger.Logger;
 import com.lexivo.schema.User;
 import com.lexivo.util.*;
 import org.jandle.api.annotations.HttpRequestHandler;
@@ -18,7 +17,6 @@ import java.util.Map;
 
 @HttpRequestHandler(method = RequestMethod.POST, path = "/auth/login")
 public class UserLoginHandler implements Handler {
-	private final Logger logger = new Logger();
 
 	@Override
 	public void handle(Request request, Response response) throws IOException {
@@ -56,8 +54,7 @@ public class UserLoginHandler implements Handler {
 					.sendJson(userData);
 		}
 		catch (Exception e) {
-			logger.exception(e, email, new String[]{e.getMessage()});
-			response.sendStatus(HttpResponseStatus.SERVER_SIDE_ERROR);
+			StandardResponse.serverSideError(response, e);
 		}
 	}
 }

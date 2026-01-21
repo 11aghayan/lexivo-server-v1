@@ -3,7 +3,6 @@ package com.lexivo.util;
 import com.lexivo.db.Db;
 import com.lexivo.logger.Logger;
 import com.lexivo.schema.EmailConfirmationCodeData;
-import com.lexivo.schema.Log;
 import com.lexivo.schema.User;
 import org.jandle.api.http.Response;
 
@@ -33,5 +32,10 @@ public abstract class StandardResponse {
 
 		Email.sendConfirmationCode(user.getEmail(), codeData.getCode());
 		jsonWithMessages(response, HttpResponseStatus.OK, "Confirm your email within 10 minutes");
+	}
+
+	public static void serverSideError(Response response, Throwable e) throws IOException {
+		logger.exception(e, new String[]{ e.getMessage() });
+		response.sendStatus(HttpResponseStatus.SERVER_SIDE_ERROR);
 	}
 }

@@ -38,12 +38,22 @@ public class AuthVerifierFilter implements Filter {
 			response.sendStatus(HttpResponseStatus.UNAUTHORIZED);
 			return;
 		}
+
+		String email = JwtUtil.getEmail(decoded);
+		UserRole role = JwtUtil.getRole(decoded);
+
 		if (!JwtUtil.isMinimumAllowedRole(decoded, minRole)) {
 			response.sendStatus(HttpResponseStatus.UNAUTHORIZED);
 			return;
 		}
 
-		request.setAttribute(JwtUtil.CLAIM_EMAIL, decoded.getClaim(JwtUtil.CLAIM_EMAIL));
+		if (role == UserRole.ADMIN) {
+			request.setAttribute("adminEmail", email);
+			request.setAttribute("userEmail", request.getBodyJson().get("userEmail"));
+		}
+		else {
+			request.setAttribute("userEmail", email);
+		}
 
 		filterChain.next(request, response);
 	}

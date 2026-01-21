@@ -6,8 +6,7 @@ import com.lexivo.handlers.auth.AdminLoginHandler;
 import com.lexivo.handlers.auth.RefreshTokenHandler;
 import com.lexivo.handlers.auth.SignupHandler;
 import com.lexivo.handlers.auth.UserLoginHandler;
-import com.lexivo.handlers.dict.GetAllDictHandler;
-import com.lexivo.handlers.dict.GetDictByIdHandler;
+import com.lexivo.handlers.dict.*;
 import com.lexivo.handlers.lang.GetAllLangHandler;
 import com.lexivo.handlers.logs.GetAllLogsHandler;
 import com.lexivo.handlers.user.ChangePasswordHandler;
@@ -74,7 +73,10 @@ public class App {
             new ChangePasswordHandler(),
             new ChangeUserNameHandler(),
             new GetAllDictHandler(),
-            new GetDictByIdHandler()
+            new GetDictByIdHandler(),
+            new AddDictHandler(),
+            new UpdateDictHandler(),
+            new DeleteDictHandler()
         );
 
         // Get all logs

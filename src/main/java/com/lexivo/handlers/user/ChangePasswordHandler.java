@@ -63,8 +63,7 @@ public class ChangePasswordHandler implements Handler {
 			response.sendStatus(HttpResponseStatus.OK);
 		}
 		catch (Exception e) {
-			logger.exception(e, email, new String[]{ e.getMessage() });
-			response.sendStatus(HttpResponseStatus.SERVER_SIDE_ERROR);
+			StandardResponse.serverSideError(response, e);
 		}
 	}
 }

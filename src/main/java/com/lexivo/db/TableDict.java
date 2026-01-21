@@ -14,8 +14,10 @@ import com.lexivo.util.ReceivedDataUtil;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class TableDict {
 	private static final String COL_ID = "id";
@@ -99,13 +101,15 @@ public class TableDict {
 		}
 	}
 
-	public void add(Dict[] dictList, String userEmail) throws UnauthorizedAccessException {
-		String sql = "INSERT INTO word ("+
+	public void add(List<Dict> dictList, String userEmail) throws SQLException {
+		String sql = "INSERT INTO dict ("+
 				COL_ID +"," +
 				COL_USER_EMAIL + "," +
-				COL_LANG + "," +
+				COL_LANG +
 				") VALUES(?,?,?)";
 		try {
+			AtomicReference<Exception> exception = new AtomicReference<>(null);
+
 			Db.executeTransaction((connection -> {
 				try(PreparedStatement statement = connection.prepareStatement(sql)) {
 					for (var dict : dictList) {
@@ -123,13 +127,17 @@ public class TableDict {
 					}
 					statement.executeBatch();
 				}
-				catch (UnauthorizedAccessException ignore) {
-					// Cannot be thrown
+				catch (Exception e) {
+					exception.set(e);
 				}
 			}));
+			Exception ex = exception.get();
+			if (ex != null)
+				throw new SQLException(ex);
 		}
-		catch (Exception e) {
-			logger.exception(e, userEmail, new String[]{"Exception in TableDict.add"});
+		catch (SQLException e) {
+			logger.exception(e, userEmail, new String[]{"Exception in TableDict.add", e.getMessage()});
+			throw e;
 		}
 	}
 

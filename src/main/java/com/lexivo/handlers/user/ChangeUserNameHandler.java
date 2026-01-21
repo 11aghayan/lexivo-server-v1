@@ -2,7 +2,6 @@ package com.lexivo.handlers.user;
 
 import com.lexivo.db.Db;
 import com.lexivo.filters.AuthVerifierFilter;
-import com.lexivo.logger.Logger;
 import com.lexivo.util.HttpResponseStatus;
 import com.lexivo.util.StandardResponse;
 import com.lexivo.util.ValidationUtil;
@@ -19,7 +18,6 @@ import java.util.List;
 @HttpRequestHandler(method = RequestMethod.PUT, path = "/user/change_name")
 @HttpRequestFilters({ AuthVerifierFilter.class })
 public class ChangeUserNameHandler implements Handler {
-	private final Logger logger = new Logger();
 
 	@Override
 	public void handle(Request request, Response response) throws IOException {
@@ -44,8 +42,7 @@ public class ChangeUserNameHandler implements Handler {
 			response.sendStatus(HttpResponseStatus.OK);
 		}
 		catch (Exception e) {
-			logger.exception(e, email, new String[]{e.getMessage()});
-			response.sendStatus(HttpResponseStatus.SERVER_SIDE_ERROR);
+			StandardResponse.serverSideError(response, e);
 		}
 	}
 }

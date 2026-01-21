@@ -41,6 +41,14 @@ public abstract class JwtUtil {
 		if (roleString == null) return false;
 		return UserRole.fromString(roleString).isMinimumAllowed(minimumAllowedRole);
 	}
+
+	public static UserRole getRole(DecodedJWT decoded) {
+		return UserRole.fromString(decoded.getClaim(CLAIM_ROLE).toString());
+	}
+
+	public static String getEmail(DecodedJWT decoded) {
+		return decoded.getClaim(CLAIM_EMAIL).asString();
+	}
 }
 
 

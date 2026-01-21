@@ -2,9 +2,9 @@ package com.lexivo.handlers.logs;
 
 import com.lexivo.db.Db;
 import com.lexivo.exceptions.InvalidLogCategoryException;
-import com.lexivo.logger.Logger;
 import com.lexivo.schema.Log;
 import com.lexivo.util.HttpResponseStatus;
+import com.lexivo.util.StandardResponse;
 import org.jandle.api.annotations.HttpRequestHandler;
 import org.jandle.api.http.Handler;
 import org.jandle.api.http.Request;
@@ -18,7 +18,6 @@ import java.util.List;
 
 @HttpRequestHandler(method = RequestMethod.GET, path = "/logs")
 public class GetAllLogsHandler implements Handler {
-	private final Logger logger = new Logger();
 	@Override
 	public void handle(Request request, Response response) throws IOException {
 		Log.Category[] categories = getCategories(request.getQueryParamFirst("categories"));
@@ -35,8 +34,7 @@ public class GetAllLogsHandler implements Handler {
 					.sendJson(logs);
 		}
 		catch (Exception e) {
-			logger.exception(e, userEmail, new String[]{e.getMessage()});
-			response.sendStatus(HttpResponseStatus.SERVER_SIDE_ERROR);
+			StandardResponse.serverSideError(response, e);
 		}
 	}
 

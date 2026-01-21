@@ -61,8 +61,7 @@ public class AdminLoginHandler implements Handler {
 					.sendJson(userData);
 		}
 		catch (Exception e) {
-			logger.exception(e, email, new String[]{e.getMessage()});
-			response.sendStatus(HttpResponseStatus.SERVER_SIDE_ERROR);
+			StandardResponse.serverSideError(response, e);
 		}
 	}
 

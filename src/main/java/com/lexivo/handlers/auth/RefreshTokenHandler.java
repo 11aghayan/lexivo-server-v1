@@ -2,9 +2,9 @@ package com.lexivo.handlers.auth;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.lexivo.enums.UserRole;
-import com.lexivo.logger.Logger;
 import com.lexivo.util.HttpResponseStatus;
 import com.lexivo.util.JwtUtil;
+import com.lexivo.util.StandardResponse;
 import org.jandle.api.annotations.HttpRequestHandler;
 import org.jandle.api.http.Handler;
 import org.jandle.api.http.Request;
@@ -16,7 +16,6 @@ import java.util.Map;
 
 @HttpRequestHandler(method = RequestMethod.POST, path = "/auth/refresh_token")
 public class RefreshTokenHandler implements Handler {
-	private final Logger logger = new Logger();
 
 	@Override
 	public void handle(Request request, Response response) throws IOException {
@@ -38,8 +37,7 @@ public class RefreshTokenHandler implements Handler {
 					.sendJson(Map.of(JwtUtil.KEY_ACCESS_TOKEN, accessToken));
 		}
 		catch (Exception e) {
-			logger.exception(e, new String[]{ e.getMessage() });
-			response.sendStatus(HttpResponseStatus.SERVER_SIDE_ERROR);
+			StandardResponse.serverSideError(response, e);
 		}
 	}
 }
